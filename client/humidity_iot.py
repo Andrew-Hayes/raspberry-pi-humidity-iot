@@ -19,7 +19,6 @@
 import argparse
 import datetime
 import json
-import logging
 import os
 import random
 import ssl
@@ -29,8 +28,6 @@ import jwt
 import paho.mqtt.client as mqtt
 
 from humidity import AM2320
-
-logging.getLogger().setLevel(logging.CRITICAL)
 
 # The initial backoff time after a disconnection occurs, in seconds.
 minimum_backoff_time = 1
@@ -288,8 +285,7 @@ def gather_and_publish_humidity_data(args):
             client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
 
         (temperatureValue,humidityValue) = am2320.readSensor()
-        payload = {"humidity": "{}".format(humidityValue)}
-        payload = {"temperature": "{}".format(temperatureValue)}
+        payload = {"humidity": "{}".format(humidityValue), "temperature": "{}".format(temperatureValue)}
         print('Publishing message {}: \'{}\''.format(
                 time.time(), json.dumps(payload)))
 
