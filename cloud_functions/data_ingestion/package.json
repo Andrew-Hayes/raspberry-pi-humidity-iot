@@ -1,0 +1,10 @@
+{
+    "name": "data-ingestion",
+    "version": "0.0.1",
+    "dependencies": {
+      "@google-cloud/pubsub": "^0.23.0",
+      "json": "^9.0.6",
+      "firebase-admin": "~5.12.0"
+    }
+  }
+  
