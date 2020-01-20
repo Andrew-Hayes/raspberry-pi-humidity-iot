@@ -38,6 +38,9 @@ MAXIMUM_BACKOFF_TIME = 32
 # Whether to wait with exponential backoff before publishing.
 should_backoff = False
 
+# Time in seconds since epoch of when to publish
+nextPublish = 0
+
 
 # [START iot_mqtt_jwt]
 def create_jwt(project_id, private_key_file, algorithm):
@@ -249,6 +252,7 @@ def gather_and_publish_humidity_data(args):
     am2320 = AM2320(1)
     global minimum_backoff_time
     global MAXIMUM_BACKOFF_TIME
+    global nextPublish
 
     # Publish to the events or state topic based on the flag.
     sub_topic = 'events'
@@ -281,10 +285,7 @@ def gather_and_publish_humidity_data(args):
             minimum_backoff_time *= 2
             client.connect(args.mqtt_bridge_hostname, args.mqtt_bridge_port)
 
-        (temperatureValue,humidityValue) = am2320.readSensor()
-        payload = {"humidity": "{}".format(humidityValue), "temperature": "{}".format(temperatureValue)}
-        print('Publishing message {}: \'{}\''.format(
-                time.time(), json.dumps(payload)))
+        
 
         # [START iot_mqtt_jwt_refresh]
         seconds_since_issue = (datetime.datetime.utcnow() - jwt_iat).seconds
@@ -300,16 +301,23 @@ def gather_and_publish_humidity_data(args):
                 args.mqtt_bridge_port)
         # [END iot_mqtt_jwt_refresh]
 
-        p = client.publish(mqtt_topic, json.dumps(payload), qos=1)
-        print("wait for publish")
-        p.wait_for_publish()
-        print("published")
-        now = datetime.now()
-        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-        print(dt_string)
-        # wait until after interval
-        print("sleeping for {}s".format(args.message_interval * 60))
-        time.sleep(args.message_interval * 60)
+        if int(time.time()) > nextPublish:
+                (temperatureValue,humidityValue) = am2320.readSensor()
+                payload = {"humidity": "{}".format(humidityValue), "temperature": "{}".format(temperatureValue)}
+                print('Publishing message {}: \'{}\''.format(
+                        time.time(), json.dumps(payload)))
+
+                p = client.publish(mqtt_topic, json.dumps(payload), qos=1)
+                print("wait for publish")
+                p.wait_for_publish()
+                print("published")
+                now = datetime.now()
+                dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+                print(dt_string)
+                # wait until after interval
+                print("next publish in {}s".format(args.message_interval * 60))
+                nextPublish = (int(time.time()) + (args.message_interval * 60))
+        time.sleep(1)
 
 
 def main():
