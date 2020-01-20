@@ -38,9 +38,6 @@ MAXIMUM_BACKOFF_TIME = 32
 # Whether to wait with exponential backoff before publishing.
 should_backoff = False
 
-# interval in minutes
-interval_between_messages = 60
-
 
 # [START iot_mqtt_jwt]
 def create_jwt(project_id, private_key_file, algorithm):
@@ -228,7 +225,7 @@ def parse_command_line_args():
     parser.add_argument(
             '--message_interval',
             type=int,
-            default=60,
+            default=10,
             help='Duration (minutes) to to publish messages.')
     parser.add_argument(
             '--mqtt_bridge_hostname',
@@ -303,7 +300,10 @@ def gather_and_publish_humidity_data(args):
                 args.mqtt_bridge_port)
         # [END iot_mqtt_jwt_refresh]
 
-        client.publish(mqtt_topic, json.dumps(payload), qos=0)
+        p = client.publish(mqtt_topic, json.dumps(payload), qos=0)
+        print("wait for publish")
+        p.wait_for_publish()
+        print("published")
         # wait until after interval
         time.sleep(args.message_interval * 60)
 
