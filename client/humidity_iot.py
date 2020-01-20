@@ -217,7 +217,7 @@ def parse_command_line_args():
             help='GCP cloud project name')
     parser.add_argument(
             '--jwt_expires_minutes',
-            default=121,
+            default=30,
             type=int,
             help='Expiration time, in minutes, for JWT tokens.')
     parser.add_argument(
@@ -289,7 +289,7 @@ def gather_and_publish_humidity_data(args):
 
         # [START iot_mqtt_jwt_refresh]
         seconds_since_issue = (datetime.datetime.utcnow() - jwt_iat).seconds
-        if seconds_since_issue > (60 * jwt_exp_mins):
+        if seconds_since_issue > (60 * (jwt_exp_mins-1)):
             print('Refreshing token after {}s'.format(seconds_since_issue))
             jwt_iat = datetime.datetime.utcnow()
             client.loop()
@@ -307,16 +307,16 @@ def gather_and_publish_humidity_data(args):
                 print('Publishing message {}: \'{}\''.format(
                         time.time(), json.dumps(payload)))
 
-                p = client.publish(mqtt_topic, json.dumps(payload), qos=1)
+                p = client.publish(mqtt_topic, json.dumps(payload), qos=0)
                 print("wait for publish")
                 p.wait_for_publish()
                 print("published")
-                now = datetime.now()
+                now = datetime.datetime.now()
                 dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
                 print(dt_string)
                 # wait until after interval
                 print("next publish in {}s".format(args.message_interval * 60))
-                nextPublish = (int(time.time()) + (args.message_interval * 60))
+                nextPublish = int(time.time() + (args.message_interval * 60))
         time.sleep(1)
 
 
