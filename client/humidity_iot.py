@@ -157,7 +157,7 @@ def get_client(
 
     # Subscribe to the commands topic, QoS 1 enables message acknowledgement.
     print('Subscribing to {}'.format(mqtt_command_topic))
-    client.subscribe(mqtt_command_topic, qos=0)
+    client.subscribe(mqtt_command_topic, qos=1)
 
     return client
 # [END iot_mqtt_config]
@@ -168,7 +168,7 @@ def detach_device(client, device_id):
     # [START iot_detach_device]
     detach_topic = '/devices/{}/detach'.format(device_id)
     print('Detaching: {}'.format(detach_topic))
-    client.publish(detach_topic, '{}', qos=0)
+    client.publish(detach_topic, '{}', qos=1)
     # [END iot_detach_device]
 
 
@@ -177,7 +177,7 @@ def attach_device(client, device_id, auth):
     # [START iot_attach_device]
     attach_topic = '/devices/{}/attach'.format(device_id)
     attach_payload = '{{"authorization" : "{}"}}'.format(auth)
-    client.publish(attach_topic, attach_payload, qos=0)
+    client.publish(attach_topic, attach_payload, qos=1)
     # [END iot_attach_device]
 
 def parse_command_line_args():
@@ -300,11 +300,15 @@ def gather_and_publish_humidity_data(args):
                 args.mqtt_bridge_port)
         # [END iot_mqtt_jwt_refresh]
 
-        p = client.publish(mqtt_topic, json.dumps(payload), qos=0)
+        p = client.publish(mqtt_topic, json.dumps(payload), qos=1)
         print("wait for publish")
         p.wait_for_publish()
         print("published")
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        print(dt_string)
         # wait until after interval
+        print("sleeping for {}s".format(args.message_interval * 60))
         time.sleep(args.message_interval * 60)
 
 
