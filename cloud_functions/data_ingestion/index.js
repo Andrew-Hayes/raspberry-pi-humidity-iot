@@ -11,8 +11,8 @@ exports.ingestIotData = (event, context) => {
   const timestamp = Math.round(new Date().getTime() / 1000)
 
   // updates a single key in the maps
-  mapToUpdate[`humidityValues.${timestamp}`] = payload.humidity
-  mapToUpdate[`temperatureValues.${timestamp}`] = payload.temperature
+  mapToUpdate[`humidityValues.${timestamp}`] = parseFloat(payload.humidity)
+  mapToUpdate[`temperatureValues.${timestamp}`] = parseFloat(payload.temperature)
 
   // send to db
   return db.collection('humidity-iot-data').doc(event.attributes.deviceId).update(mapToUpdate)
