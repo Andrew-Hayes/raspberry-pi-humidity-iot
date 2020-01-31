@@ -1,0 +1,11 @@
+{
+    "deviceID": "xxxxxxx",
+    "projectID": "xxxxxxx",
+    "registryID": "xxxxxxx",
+    "regionID": "europe-west1",
+    "privateKey": "/etc/iot_client/key.pem",
+    "host": "mqtt.googleapis.com",
+    "port": "8883",
+    "offlineData": "/tmp",
+    "updateInterval": 10
+}
