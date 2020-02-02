@@ -2,6 +2,7 @@
     "deviceID": "xxxxxxx",
     "projectID": "xxxxxxx",
     "registryID": "xxxxxxx",
+    "friendlyName": "IoT Humidity Device",
     "regionID": "europe-west1",
     "privateKey": "/etc/iot_client/key.pem",
     "host": "mqtt.googleapis.com",

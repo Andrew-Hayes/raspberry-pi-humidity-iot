@@ -33,9 +33,10 @@ type responseMessage struct {
 }
 
 type TelemetryValues struct {
-	Temperature float32 `json:"temperature"`
-	Humidity    float32 `json:"humidity"`
-	Timestamp   int64   `json:"timestamp"`
+	Temperature  float32 `json:"temperature"`
+	Humidity     float32 `json:"humidity"`
+	Timestamp    int64   `json:"timestamp"`
+	FriendlyName string  `json:"friendlyName"`
 }
 
 type Topics struct {
@@ -51,6 +52,7 @@ type AppConfig struct {
 	DeviceID       string `json:"deviceID"`
 	ProjectID      string `json:"projectID"`
 	RegistryID     string `json:"registryID"`
+	FriendlyName   string `json:"friendlyName"`
 	RegionID       string `json:"regionID"`
 	PrivateKey     string `json:"privateKey"`
 	Host           string `json:"host"`
@@ -152,7 +154,6 @@ func main() {
 	go sendMessages(telemetryDataToSend)
 
 	setUpdateInterval(appConfig.UpdateInterval)
-	readTempAndHumidity()
 
 	<-gocron.Start()
 
@@ -163,12 +164,14 @@ func main() {
 }
 
 func setUpdateInterval(interval uint64) {
-	intervalUpdateMutex.Lock()
 	defer intervalUpdateMutex.Unlock()
 	if intervalSet {
 		gocron.Remove(readTempAndHumidity)
 	}
-	gocron.Every(interval).Minutes().Do(readTempAndHumidity)
+
+	currentTime := time.Now()
+	startTime := currentTime.Truncate(time.Minute).Add(time.Minute * time.Duration(int(interval)-(currentTime.Minute()%int(interval))))
+	gocron.Every(interval).Minutes().From(&startTime).Do(readTempAndHumidity)
 	log.Printf("[setUpdateInterval] interval set to %d", interval)
 	intervalSet = true
 }
@@ -188,9 +191,10 @@ func readTempAndHumidity() {
 	}
 
 	tv := TelemetryValues{
-		Temperature: t,
-		Humidity:    rh,
-		Timestamp:   time.Now().Unix(),
+		Temperature:  t,
+		Humidity:     rh,
+		Timestamp:    time.Now().Unix(),
+		FriendlyName: appConfig.FriendlyName,
 	}
 	addToTelemetryArray(tv)
 }
